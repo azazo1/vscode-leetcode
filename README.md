@@ -20,7 +20,20 @@
   </a>
 </p>
 
-- English Document | [中文文档](https://github.com/LeetCode-OpenSource/vscode-leetcode/blob/master/docs/README_zh-CN.md)
+- English Document | [中文文档](https://github.com/azazo1/vscode-leetcode/blob/master/docs/README_zh-CN.md)
+
+## ⚠️ Compatibility
+
+This is a fork of `LeetCode.vscode-leetcode`, published as `azazo1.vscode-leetcode`.
+
+It declares the same `leetcode.*` commands and the same explorer view as the original, and the two share the same settings and problem folder. **They cannot be enabled at the same time**, so keep only one of them.
+
+On activation this extension checks for the original:
+
+- if the original is running, this extension refuses to activate and reports why;
+- if the original is installed but not running, you get a warning.
+
+Uninstall or disable the original, reload the window, then use this one.
 
 ## ❗️ Attention ❗️- Workaround to login to LeetCode endpoint
 

@@ -20,7 +20,20 @@
   </a>
 </p>
 
-- [English Document](https://github.com/LeetCode-OpenSource/vscode-leetcode#requirements) | 中文文档
+- [English Document](https://github.com/azazo1/vscode-leetcode#requirements) | 中文文档
+
+## ⚠️ 兼容性
+
+本扩展是 `LeetCode.vscode-leetcode` 的分支, 发布为 `azazo1.vscode-leetcode`.
+
+它与原插件声明了相同的 `leetcode.*` 命令和同名题目列表视图, 并且共用同一份配置与题目目录. **两者不能同时启用**, 只能保留其一.
+
+激活时本扩展会检查原插件:
+
+- 原插件正在运行时, 本扩展拒绝激活并说明原因;
+- 原插件只是已安装但未运行时, 给出警告.
+
+请卸载或禁用原插件, 重新加载窗口后再使用本扩展.
 
 ## ❗️ 注意 ❗️- 无法登录 LeetCode 节点的临时解决办法
 
