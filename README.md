@@ -84,7 +84,7 @@ Thanks for [@yihong0618](https://github.com/yihong0618) provided a workaround wh
 - Directly click on the problem or right click the problem in the `LeetCode Explorer` and select `Preview Problem` to see the problem description.
 - Select `Show Problem` to directly open the file with the problem description.
 
-  > Note：You can specify the path of the workspace folder to store the problem files by updating the setting `leetcode.workspaceFolder`. The default value is：**$HOME/.leetcode/**.
+  > Note：Problem files are saved to the currently opened workspace folder by default. You can also specify a fixed path by updating the setting `leetcode.workspaceFolder`. If it is set to a path that is not opened in VS Code, you will be asked whether to open it.
 
   > You can specify whether including the problem description in comments or not by updating the setting `leetcode.showCommentDescription`.
 
@@ -136,7 +136,7 @@ Thanks for [@yihong0618](https://github.com/yihong0618) provided a workaround wh
 | `leetcode.defaultLanguage`        | Specify the default language used to solve the problem. Supported languages are: `bash`, `c`, `cpp`, `csharp`, `golang`, `java`, `javascript`, `kotlin`, `mysql`, `php`, `python`,`python3`,`ruby`,`rust`, `scala`, `swift`, `typescript`                     | `N/A`              |
 | `leetcode.useWsl`                 | Specify whether to use WSL or not                                                                                                                                                                                                                             | `false`            |
 | `leetcode.endpoint`               | Specify the active endpoint. Supported endpoints are: `leetcode`, `leetcode-cn`                                                                                                                                                                               | `leetcode`         |
-| `leetcode.workspaceFolder`        | Specify the path of the workspace folder to store the problem files.                                                                                                                                                                                          | `""`               |
+| `leetcode.workspaceFolder`        | Specify the path of the workspace folder to store the problem files. When left empty, the currently opened workspace folder is used.                                                                                                                          | `""`               |
 | `leetcode.filePath`               | Specify the relative path under the workspace and the file name to save the problem files. More details can be found [here](https://github.com/LeetCode-OpenSource/vscode-leetcode/wiki/Customize-the-Relative-Folder-and-the-File-Name-of-the-Problem-File). |                    |
 | `leetcode.enableStatusBar`        | Specify whether the LeetCode status bar will be shown or not.                                                                                                                                                                                                 | `true`             |
 | `leetcode.editor.shortcuts`       | Specify the customized shortcuts in editors. Supported values are: `submit`, `test`, `star`, `solution` and `description`.                                                                                                                                    | `["submit, test"]` |

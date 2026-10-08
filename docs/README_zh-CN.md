@@ -84,7 +84,7 @@
 - 直接点击题目或者在 `LeetCode Explorer` 中**右键**题目并选择 `Preview Problem` 可查看题目描述
 - 选择 `Show Problem` 可直接进行答题。
 
-  > 注意：你可以通过更新配置项 `leetcode.workspaceFolder` 来指定保存题目文件所用的工作区路径。默认工作区路径为：**$HOME/.leetcode/**。
+  > 注意：题目文件默认保存到当前打开的工作区目录中。你也可以通过配置项 `leetcode.workspaceFolder` 指定一个固定路径。如果指定的路径没有在 VS Code 中打开，插件会询问是否要打开它。
 
   > 注意：你可以通过更新配置项 `leetcode.showCommentDescription` 来指定是否要在注释中包含题目描述。
 
@@ -136,7 +136,7 @@
 | `leetcode.defaultLanguage`        | 指定答题时使用的默认语言，可选语言有：`bash`, `c`, `cpp`, `csharp`, `golang`, `java`, `javascript`, `kotlin`, `mysql`, `php`, `python`,`python3`,`ruby`, `rust`, `scala`, `swift`, `typescript`                                                                                                               | `N/A`              |
 | `leetcode.useWsl`                 | 指定是否启用 WSL                                                                                                                                                                                                                                                                                              | `false`            |
 | `leetcode.endpoint`               | 指定使用的终端，可用终端有：`leetcode`, `leetcode-cn`                                                                                                                                                                                                                                                         | `leetcode`         |
-| `leetcode.workspaceFolder`        | 指定保存文件的工作区目录                                                                                                                                                                                                                                                                                      | `""`               |
+| `leetcode.workspaceFolder`        | 指定保存文件的工作区目录。留空时使用当前打开的工作区目录                                                                                                                                                                                                                                                      | `""`               |
 | `leetcode.filePath`               | 指定生成题目文件的相对文件夹路径名和文件名。点击查看[更多详细用法](https://github.com/LeetCode-OpenSource/vscode-leetcode/wiki/%E8%87%AA%E5%AE%9A%E4%B9%89%E9%A2%98%E7%9B%AE%E6%96%87%E4%BB%B6%E7%9A%84%E7%9B%B8%E5%AF%B9%E6%96%87%E4%BB%B6%E5%A4%B9%E8%B7%AF%E5%BE%84%E5%92%8C%E6%96%87%E4%BB%B6%E5%90%8D)。 |                    |
 | `leetcode.enableStatusBar`        | 指定是否在 VS Code 下方显示插件状态栏。                                                                                                                                                                                                                                                                       | `true`             |
 | `leetcode.editor.shortcuts`       | 指定在编辑器内所自定义的快捷方式。可用的快捷方式有: `submit`, `test`, `star`, `solution`, `description`。                                                                                                                                                                                                     | `["submit, test"]` |

@@ -395,7 +395,7 @@
                     "leetcode.workspaceFolder": {
                         "type": "string",
                         "scope": "application",
-                        "description": "The path of the workspace folder to store the problem files.",
+                        "description": "The path of the workspace folder to store the problem files. When left empty, the currently opened workspace folder is used.",
                         "default": ""
                     },
                     "leetcode.filePath": {

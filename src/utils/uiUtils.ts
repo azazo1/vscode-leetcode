@@ -103,18 +103,6 @@ function getBelongingWorkspaceFolderUri(fsPath: string | undefined): vscode.Uri 
     return defaultUri;
 }
 
-export async function showDirectorySelectDialog(fsPath?: string): Promise<vscode.Uri[] | undefined> {
-    const defaultUri: vscode.Uri | undefined = getBelongingWorkspaceFolderUri(fsPath);
-    const options: vscode.OpenDialogOptions = {
-        defaultUri,
-        canSelectFiles: false,
-        canSelectFolders: true,
-        canSelectMany: false,
-        openLabel: "Select",
-    };
-    return await vscode.window.showOpenDialog(options);
-}
-
 export async function openUrl(url: string): Promise<void> {
     vscode.commands.executeCommand("vscode.open", vscode.Uri.parse(url));
 }

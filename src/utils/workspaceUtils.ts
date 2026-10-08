@@ -2,23 +2,24 @@
 // Licensed under the MIT license.
 
 import * as fse from "fs-extra";
-import * as os from "os";
 import * as path from "path";
 import * as vscode from "vscode";
 import { IQuickItemEx } from "../shared";
-import { getWorkspaceConfiguration, getWorkspaceFolder } from "./settingUtils";
-import { showDirectorySelectDialog } from "./uiUtils";
+import { getWorkspaceFolder } from "./settingUtils";
 import * as wsl from "./wslUtils";
 
 export async function selectWorkspaceFolder(): Promise<string> {
     let workspaceFolderSetting: string = getWorkspaceFolder();
     if (workspaceFolderSetting.trim() === "") {
-        workspaceFolderSetting = await determineLeetCodeFolder();
-        if (workspaceFolderSetting === "") {
-            // User cancelled
-            return workspaceFolderSetting;
+        // 未显式配置保存位置时, 默认使用当前打开的工作区, 而不是所有项目共用一个固定目录
+        const currentWorkspaceFolder: string | undefined = await resolveCurrentWorkspaceFolder();
+        if (!currentWorkspaceFolder) {
+            // 用户取消了选择, 或者当前没有打开工作区 (此时 resolveCurrentWorkspaceFolder 已经给出提示)
+            return "";
         }
+        workspaceFolderSetting = currentWorkspaceFolder;
     }
+
     let needAsk: boolean = true;
     await fse.ensureDir(workspaceFolderSetting);
     for (const folder of vscode.workspace.workspaceFolders || []) {
@@ -59,6 +60,39 @@ export async function selectWorkspaceFolder(): Promise<string> {
     return wsl.useWsl() ? wsl.toWslPath(workspaceFolderSetting) : workspaceFolderSetting;
 }
 
+/**
+ * 解析保存题目文件所用的当前工作区目录.
+ *
+ * 返回 undefined 表示无法确定保存位置, 可能是用户取消了选择,
+ * 也可能是当前没有打开任何工作区 (这种情况会弹出提示).
+ */
+async function resolveCurrentWorkspaceFolder(): Promise<string | undefined> {
+    const folders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+    if (!folders || folders.length === 0) {
+        vscode.window.showWarningMessage(
+            "No folder is opened in VS Code, so the problem file cannot be saved. "
+            + "Please open a folder first, or set 'leetcode.workspaceFolder' to specify the location.",
+        );
+        return undefined;
+    }
+
+    if (folders.length === 1) {
+        return folders[0].uri.fsPath;
+    }
+
+    // 多根工作区无法确定唯一目标, 交给用户选择
+    const picks: Array<IQuickItemEx<string>> = folders.map((folder: vscode.WorkspaceFolder) => ({
+        label: folder.name,
+        detail: folder.uri.fsPath,
+        value: folder.uri.fsPath,
+    }));
+    const choice: IQuickItemEx<string> | undefined = await vscode.window.showQuickPick(picks, {
+        placeHolder: "Select a workspace folder to store the problem files",
+        ignoreFocusOut: true,
+    });
+    return choice ? choice.value : undefined;
+}
+
 export async function getActiveFilePath(uri?: vscode.Uri): Promise<string | undefined> {
     let textEditor: vscode.TextEditor | undefined;
     if (uri) {
@@ -83,42 +117,6 @@ function isSubFolder(from: string, to: string): boolean {
         return true;
     }
     return !relative.startsWith("..") && !path.isAbsolute(relative);
-}
-
-async function determineLeetCodeFolder(): Promise<string> {
-    let result: string;
-    const picks: Array<IQuickItemEx<string>> = [];
-    picks.push(
-        {
-            label: `Default location`,
-            detail: `${path.join(os.homedir(), ".leetcode")}`,
-            value: `${path.join(os.homedir(), ".leetcode")}`,
-        },
-        {
-            label: "$(file-directory) Browse...",
-            value: ":browse",
-        },
-    );
-    const choice: IQuickItemEx<string> | undefined = await vscode.window.showQuickPick(
-        picks,
-        { placeHolder: "Select where you would like to save your LeetCode files" },
-    );
-    if (!choice) {
-        result = "";
-    } else if (choice.value === ":browse") {
-        const directory: vscode.Uri[] | undefined = await showDirectorySelectDialog();
-        if (!directory || directory.length < 1) {
-            result = "";
-        } else {
-            result = directory[0].fsPath;
-        }
-    } else {
-        result = choice.value;
-    }
-
-    getWorkspaceConfiguration().update("workspaceFolder", result, vscode.ConfigurationTarget.Global);
-
-    return result;
 }
 
 enum OpenOption {
