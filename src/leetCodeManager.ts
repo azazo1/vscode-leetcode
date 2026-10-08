@@ -6,7 +6,7 @@ import { EventEmitter } from "events";
 import * as vscode from "vscode";
 import { leetCodeChannel } from "./leetCodeChannel";
 import { leetCodeExecutor } from "./leetCodeExecutor";
-import { Endpoint, IQuickItemEx, loginArgsMapping, urls, urlsCn, UserStatus } from "./shared";
+import { getWebAuthLoginUrl, IQuickItemEx, loginArgsMapping, UserStatus } from "./shared";
 import { createEnvOption } from "./utils/cpUtils";
 import { DialogType, openUrl, promptForOpenOutputChannel } from "./utils/uiUtils";
 import * as wsl from "./utils/wslUtils";
@@ -154,13 +154,7 @@ class LeetCodeManager extends EventEmitter {
     }
 
     public getAuthLoginUrl(): string {
-        switch (getLeetCodeEndpoint()) {
-            case Endpoint.LeetCodeCN:
-                return urlsCn.authLoginUrl;
-            case Endpoint.LeetCode:
-            default:
-                return urls.authLoginUrl;
-        }
+        return getWebAuthLoginUrl(getLeetCodeEndpoint());
     }
 
     public setCookieToCli(cookie: string, name: string): Promise<void> {

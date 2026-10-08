@@ -19,6 +19,7 @@ import { leetCodeChannel } from "./leetCodeChannel";
 import { leetCodeExecutor } from "./leetCodeExecutor";
 import { leetCodeManager } from "./leetCodeManager";
 import { leetCodeStatusBarController } from "./statusbar/leetCodeStatusBarController";
+import { setSelfExtensionId } from "./shared";
 import { guardAgainstOriginalExtension } from "./utils/extensionConflict";
 import { DialogType, promptForOpenOutputChannel } from "./utils/uiUtils";
 import { leetCodePreviewProvider } from "./webview/leetCodePreviewProvider";
@@ -30,6 +31,9 @@ import { globalState } from "./globalState";
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     try {
+        // 网页登录的回调地址需要本扩展的真实 id, 写错会导致浏览器跳回时提示安装原插件
+        setSelfExtensionId(context.extension.id);
+
         // 原插件正在运行时双方的命令与视图会冲突, 此时不激活
         if (!await guardAgainstOriginalExtension()) {
             return;

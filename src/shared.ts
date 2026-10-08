@@ -125,7 +125,31 @@ export enum SortingStrategy {
 export const PREMIUM_URL_CN = "https://leetcode.cn/premium-payment/?source=vscode";
 export const PREMIUM_URL_GLOBAL = "https://leetcode.com/subscribe/?ref=lp_pl&source=vscode";
 
-const protocol = vscode.env.appName.includes('Insiders') ? "vscode-insiders" : "vscode"
+/**
+ * 本扩展自身的 id, 在激活时从 ExtensionContext 读取.
+ *
+ * 网页登录的回调地址形如 `vscode://<扩展 id>/`, VS Code 按其中的 id 决定把回调交给哪个扩展.
+ * 这里不能沿用原插件的 id, 否则浏览器跳回时 VS Code 会认为回调属于原插件, 转而提示安装它.
+ * 也不写死本扩展 id, 以免 publisher 或 name 变更后再次失配.
+ */
+let selfExtensionId: string | undefined;
+
+export function setSelfExtensionId(id: string): void {
+    selfExtensionId = id;
+}
+
+/**
+ * 网页登录的授权地址.
+ *
+ * 用户在浏览器完成授权后, 网站按其中的 path 参数跳回本扩展注册的 uri handler.
+ */
+export function getWebAuthLoginUrl(endpoint: string): string {
+    if (!selfExtensionId) {
+        throw new Error("Extension id is not initialized, cannot build the login callback url.");
+    }
+    const base: string = endpoint === Endpoint.LeetCodeCN ? "https://leetcode.cn" : "https://leetcode.com";
+    return `${base}/authorize-login/${vscode.env.uriScheme}/?path=${selfExtensionId}`;
+}
 
 export const urls = {
     // base urls
@@ -133,7 +157,6 @@ export const urls = {
     graphql: "https://leetcode.com/graphql",
     userGraphql: "https://leetcode.com/graphql",
     login: "https://leetcode.com/accounts/login/",
-    authLoginUrl: `https://leetcode.com/authorize-login/${protocol}/?path=leetcode.vscode-leetcode`,
 };
 
 export const urlsCn = {
@@ -142,7 +165,6 @@ export const urlsCn = {
     graphql: "https://leetcode.cn/graphql",
     userGraphql: "https://leetcode.cn/graphql/",
     login: "https://leetcode.cn/accounts/login/",
-    authLoginUrl: `https://leetcode.cn/authorize-login/${protocol}/?path=leetcode.vscode-leetcode`,
 };
 
 export const getUrl = (key: string) => {
