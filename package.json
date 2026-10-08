@@ -683,6 +683,12 @@
                         "scope": "application",
                         "description": "The Node.js executable path. for example, C:\\Program Files\\nodejs\\node.exe"
                     },
+                    "leetcode.cpp.generateRunner": {
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application",
+                        "description": "Generate compilable C++ code by adding standard headers, the ListNode/TreeNode definitions when the template only has them in comments, and a main function that reads test input from stdin. The added code stays outside the '@lc code=start' and '@lc code=end' markers, so it is never submitted to LeetCode."
+                    },
                     "leetcode.colorizeProblems": {
                         "type": "boolean",
                         "default": true,

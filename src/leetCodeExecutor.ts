@@ -9,7 +9,9 @@ import * as requireFromString from "require-from-string";
 import { ExtensionContext } from "vscode";
 import { ConfigurationChangeEvent, Disposable, MessageItem, window, workspace, WorkspaceConfiguration } from "vscode";
 import { Endpoint, IProblem, leetcodeHasInited, supportedPlugins } from "./shared";
+import { generateRunnableCpp } from "./runnable/cppRunner";
 import { executeCommand, executeCommandWithProgress } from "./utils/cpUtils";
+import { shouldGenerateCppRunner } from "./utils/settingUtils";
 import { DialogOptions, openUrl } from "./utils/uiUtils";
 import * as wsl from "./utils/wslUtils";
 import { toWslPath, useWsl } from "./utils/wslUtils";
@@ -110,7 +112,10 @@ class LeetCodeExecutor implements Disposable {
 
         if (!await fse.pathExists(filePath)) {
             await fse.createFile(filePath);
-            const codeTemplate: string = await this.executeCommandWithProgressEx("Fetching problem data...", this.nodeExecutable, cmd);
+            let codeTemplate: string = await this.executeCommandWithProgressEx("Fetching problem data...", this.nodeExecutable, cmd);
+            if (language === "cpp" && shouldGenerateCppRunner()) {
+                codeTemplate = generateRunnableCpp(codeTemplate);
+            }
             await fse.writeFile(filePath, codeTemplate);
         }
     }
