@@ -689,6 +689,12 @@
                         "scope": "application",
                         "description": "Generate compilable C++ code by adding standard headers, the ListNode/TreeNode definitions when the template only has them in comments, and a main function that reads test input from stdin. The added code stays outside the '@lc code=start' and '@lc code=end' markers, so it is never submitted to LeetCode."
                     },
+                    "leetcode.cpp.sharedHeader": {
+                        "type": "boolean",
+                        "default": true,
+                        "scope": "application",
+                        "description": "Put the local-run helpers into a shared 'lc_local.h' next to the problem file and include it, instead of inlining several hundred lines into every problem file. Turn this off to inline the helpers again."
+                    },
                     "leetcode.colorizeProblems": {
                         "type": "boolean",
                         "default": true,

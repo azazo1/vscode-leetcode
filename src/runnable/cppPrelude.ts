@@ -112,6 +112,11 @@ struct Reader {
         return false;
     }
 
+    // 输入是否为空 (只含空白字符)
+    bool empty() {
+        return text.find_first_not_of(" \t\r\n") == std::string::npos;
+    }
+
     long long readInteger() {
         skipSpaces();
         size_t start = pos;
@@ -432,4 +437,82 @@ struct Show<TreeNode *> {
     }
 };
 
+// 读入标准输入. 没有输入时给出用法提示, 而不是静默地按默认值运行.
+inline std::string readStdin(std::istream &in) {
+    std::string text;
+    std::string line;
+    bool firstLine = true;
+    while (std::getline(in, line)) {
+        // 第一行直接回车表示不提供输入
+        if (firstLine && line.empty()) {
+            break;
+        }
+        firstLine = false;
+        text += line;
+        text += "\n";
+    }
+    if (text.find_first_not_of(" \t\r\n") == std::string::npos) {
+        std::cout << "未提供测试输入. 每行传入一个参数, 顺序与类型见本文件 main 上方的注释." << std::endl;
+        std::cout << "  ./a.out < input.txt" << std::endl;
+        // 用 printf 而不是 echo, 因为 bash 的 echo 默认不解释 \n
+        std::cout << "  printf '[2,7,11,15]\\n9\\n' | ./a.out" << std::endl;
+    }
+    return text;
+}
+
+// 按类型读入下一个参数
+template <typename T>
+inline T readNext(Reader &reader) {
+    return Read<T>::get(reader);
+}
+
+// 按类型打印结果, 格式与 LeetCode 的示例输出一致
+template <typename T>
+inline void print(const T &value) {
+    std::cout << Show<T>::get(value) << std::endl;
+}
+
 } // namespace lc_local`;
+
+/** 公共头文件的文件名, 与题目文件放在同一目录. */
+export const RUNNER_HEADER_NAME: string = "lc_local.h";
+
+/** 头文件内容的版本, 用来判断磁盘上的副本是否需要更新. */
+export const RUNNER_HEADER_VERSION: string = "1";
+
+/** 生成的文件都带这一行, 据此判断某个 lc_local.h 是否由本扩展生成. */
+export const RUNNER_HEADER_MARKER: string = "azazo1.vscode-leetcode";
+
+/**
+ * 公共头文件的完整内容.
+ *
+ * 把辅助代码集中到一份头文件里, 题目文件就只剩 include 与解答本身.
+ * ListNode / TreeNode 的定义用宏保护, 题目自身已定义时可在 include 前定义对应宏跳过.
+ */
+export function buildRunnerHeader(): string {
+    return [
+        `// ${RUNNER_HEADER_NAME} - 由 ${RUNNER_HEADER_MARKER} 生成, 供本地编译运行 LeetCode C++ 解答使用.`,
+        `// version: ${RUNNER_HEADER_VERSION}`,
+        "// 它位于 @lc 标记之外, 提交题目时不会发送给 LeetCode.",
+        "// 可以安全删除, 下次打开题目时会重新生成. 手工修改会在版本更新时被覆盖.",
+        "",
+        "#ifndef LC_LOCAL_H",
+        "#define LC_LOCAL_H",
+        "",
+        INCLUDES,
+        "",
+        "// 题目的初始代码只把这两个结构体放在注释里, 这里补上真正的定义.",
+        "#ifndef LC_LOCAL_NO_LISTNODE",
+        LIST_NODE,
+        "#endif",
+        "",
+        "#ifndef LC_LOCAL_NO_TREENODE",
+        TREE_NODE,
+        "#endif",
+        "",
+        RUNNER_SUPPORT,
+        "",
+        "#endif  // LC_LOCAL_H",
+        "",
+    ].join("\n");
+}

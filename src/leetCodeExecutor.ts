@@ -10,8 +10,9 @@ import { ExtensionContext } from "vscode";
 import { ConfigurationChangeEvent, Disposable, MessageItem, window, workspace, WorkspaceConfiguration } from "vscode";
 import { Endpoint, IProblem, leetcodeHasInited, supportedPlugins } from "./shared";
 import { generateRunnableCpp } from "./runnable/cppRunner";
+import { ensureRunnerHeader } from "./runnable/cppHeaderFile";
 import { executeCommand, executeCommandWithProgress } from "./utils/cpUtils";
-import { shouldGenerateCppRunner } from "./utils/settingUtils";
+import { shouldGenerateCppRunner, shouldUseSharedRunnerHeader } from "./utils/settingUtils";
 import { DialogOptions, openUrl } from "./utils/uiUtils";
 import * as wsl from "./utils/wslUtils";
 import { toWslPath, useWsl } from "./utils/wslUtils";
@@ -114,7 +115,11 @@ class LeetCodeExecutor implements Disposable {
             await fse.createFile(filePath);
             let codeTemplate: string = await this.executeCommandWithProgressEx("Fetching problem data...", this.nodeExecutable, cmd);
             if (language === "cpp" && shouldGenerateCppRunner()) {
-                codeTemplate = generateRunnableCpp(codeTemplate);
+                const useSharedHeader: boolean = shouldUseSharedRunnerHeader();
+                if (useSharedHeader) {
+                    await ensureRunnerHeader(filePath);
+                }
+                codeTemplate = generateRunnableCpp(codeTemplate, useSharedHeader);
             }
             await fse.writeFile(filePath, codeTemplate);
         }

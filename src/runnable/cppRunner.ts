@@ -1,7 +1,7 @@
 // Copyright (c) jdneo. All rights reserved.
 // Licensed under the MIT license.
 
-import { buildRunnerPrelude, RUNNER_SUPPORT } from "./cppPrelude";
+import { buildRunnerPrelude, RUNNER_HEADER_NAME } from "./cppPrelude";
 import { CppKind, ICppMethod, ICppParameter, ICppType, parseSolutionMethod } from "./cppSignature";
 
 const START_MARKER: string = "@lc code=start";
@@ -10,22 +10,23 @@ const END_MARKER: string = "@lc code=end";
 /**
  * 把 LeetCode 生成的初始代码改造成可以直接编译运行的代码.
  *
- * 生成的文件结构:
+ * useSharedHeader 为 true 时 (默认), 辅助代码放在同目录的 lc_local.h 里,
+ * 题目文件只保留 include 与自己的 main:
  *
  *     <题目标注注释>
- *     #include ...          <- 位于标记之外
+ *     #include "lc_local.h"    <- 位于标记之外, 不会提交
  *     using namespace std;
- *     struct ListNode {...} <- 题目代码只把它放在注释里时补上
  *     // @lc code=start
- *     class Solution {...}; <- 提交给 LeetCode 的内容只有这一段
+ *     class Solution {...};    <- 提交给 LeetCode 的只有这一段
  *     // @lc code=end
- *     namespace lc_local {...}  <- 读入与打印辅助
- *     int main() {...}          <- 运行入口
+ *     int main() {...}         <- 运行入口, 位于标记之外
  *
- * 关键约束: 提交与测试时 CLI 只截取两个标记之间的内容, 因此辅助代码必须放在标记之外,
- * 否则会随解答一起提交给判题机.
+ * 为 false 时退回把辅助代码整段内联进题目文件.
+ *
+ * 关键约束: 提交与测试时 CLI 只截取两个标记之间的内容, 因此 include 与 main
+ * 都必须放在标记之外, 否则会随解答一起提交给判题机.
  */
-export function generateRunnableCpp(code: string): string {
+export function generateRunnableCpp(code: string, useSharedHeader: boolean = true): string {
     const lines: string[] = code.split(/\r?\n/);
     const startLine: number = lines.findIndex((line: string) => line.indexOf(START_MARKER) >= 0);
     const endLine: number = lines.findIndex((line: string) => line.indexOf(END_MARKER) >= 0);
@@ -35,17 +36,31 @@ export function generateRunnableCpp(code: string): string {
     }
 
     const method: ICppMethod | undefined = parseSolutionMethod(code);
-    const defineListNode: boolean = !definesType(code, "ListNode");
-    const defineTreeNode: boolean = !definesType(code, "TreeNode");
+    const selfDefinesListNode: boolean = definesType(code, "ListNode");
+    const selfDefinesTreeNode: boolean = definesType(code, "TreeNode");
 
     const result: string[] = [];
     result.push(...lines.slice(0, startLine));
-    result.push(...buildRunnerPrelude(defineListNode, defineTreeNode).split("\n"));
+    if (useSharedHeader) {
+        // 题目自身有定义时, 让头文件跳过它那份, 避免重复定义
+        if (selfDefinesListNode) {
+            result.push("#define LC_LOCAL_NO_LISTNODE");
+        }
+        if (selfDefinesTreeNode) {
+            result.push("#define LC_LOCAL_NO_TREENODE");
+        }
+        result.push(`#include "${RUNNER_HEADER_NAME}"`);
+        result.push("");
+        result.push("using namespace std;");
+        result.push("");
+    } else {
+        result.push(...buildRunnerPrelude(!selfDefinesListNode, !selfDefinesTreeNode).split("\n"));
+    }
     result.push(...lines.slice(startLine, endLine + 1));
     result.push("");
-    result.push(...RUNNER_SUPPORT.split("\n"));
-    result.push("");
+    result.push("// #region 本地运行入口 (位于 @lc 标记之外, 不会提交)");
     result.push(...(method ? buildMain(method) : buildPlaceholderMain()).split("\n"));
+    result.push("// #endregion");
     const trailing: string[] = lines.slice(endLine + 1).filter((line: string) => line.trim().length > 0);
     if (trailing.length > 0) {
         result.push("");
@@ -101,11 +116,6 @@ export function cppTypeText(type: ICppType): string {
     }
 }
 
-/** 转义成可以放进 C++ 字符串字面量的形式, 提示文本里可能出现引号与反斜杠. */
-function escapeCppStringLiteral(text: string): string {
-    return text.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
-}
-
 /** 给出一个可直接照抄的输入样例. */
 function sampleHint(type: ICppType): string {
     switch (type.kind) {
@@ -140,9 +150,7 @@ function sampleHint(type: ICppType): string {
 }
 
 function buildMain(method: ICppMethod): string {
-    const body: string[] = [];
-
-    for (const parameter of method.parameters) {
+    for (const parameter of method.constructorParameters.concat(method.parameters)) {
         if (!isSupported(parameter.type)) {
             return buildPlaceholderMain();
         }
@@ -151,39 +159,22 @@ function buildMain(method: ICppMethod): string {
         return buildPlaceholderMain();
     }
 
+    // 参数的顺序与样例放在注释里, 运行时的提示只指向这里, 避免 main 里堆一大段输出
+    const hint: string = method.constructorParameters.concat(method.parameters)
+        .map((parameter: ICppParameter) => `${parameter.name}=${sampleHint(parameter.type)}`)
+        .join(", ");
+    const body: string[] = [`// 输入顺序 (每行一个): ${hint}`];
+
     body.push("int main() {");
-    body.push("    std::string text;");
-    body.push("    std::string line;");
-    body.push("    bool firstLine = true;");
-    body.push("    while (std::getline(std::cin, line)) {");
-    body.push("        // 直接回车表示不提供输入");
-    body.push("        if (firstLine && line.empty()) {");
-    body.push("            break;");
-    body.push("        }");
-    body.push("        firstLine = false;");
-    body.push("        text += line;");
-    body.push(String.raw`        text += "\n";`);
-    body.push("    }");
-    body.push("");
-    body.push(String.raw`    if (text.find_first_not_of(" \t\r\n") == std::string::npos) {`);
-    body.push(String.raw`        std::cout << "未提供测试输入, 请从标准输入传入参数 (每行一个):" << std::endl;`);
-    const hintParameters: ICppParameter[] = method.constructorParameters.concat(method.parameters);
-    for (const parameter of hintParameters) {
-        const hint: string = escapeCppStringLiteral(sampleHint(parameter.type));
-        const typeText: string = escapeCppStringLiteral(cppTypeText(parameter.type));
-        body.push(`        std::cout << "  ${parameter.name}: ${typeText}, 例如 ${hint}" << std::endl;`);
-    }
-    body.push(String.raw`        std::cout << "也可以执行 ./a.out < input.txt" << std::endl;`);
+    body.push("    lc_local::Reader reader(lc_local::readStdin(std::cin));");
+    body.push("    if (reader.empty()) {");
     body.push("        return 0;");
     body.push("    }");
-    body.push("");
-    body.push("    lc_local::Reader reader(text);");
 
     // 构造函数需要参数时, 必须先读入这些参数再构造对象
     // (例如 NumArray 没有默认构造函数, 直接声明对象无法编译)
     for (const parameter of method.constructorParameters) {
-        const type: string = cppTypeText(parameter.type);
-        body.push(`    ${type} ${parameter.name} = lc_local::Read<${type}>::get(reader);`);
+        body.push(`    auto ${parameter.name} = lc_local::readNext<${cppTypeText(parameter.type)}>(reader);`);
     }
     if (method.constructorParameters.length > 0) {
         const constructorArguments: string = method.constructorParameters
@@ -195,8 +186,7 @@ function buildMain(method: ICppMethod): string {
     }
 
     for (const parameter of method.parameters) {
-        const type: string = cppTypeText(parameter.type);
-        body.push(`    ${type} ${parameter.name} = lc_local::Read<${type}>::get(reader);`);
+        body.push(`    auto ${parameter.name} = lc_local::readNext<${cppTypeText(parameter.type)}>(reader);`);
     }
 
     const argumentsText: string = method.parameters.map((parameter: ICppParameter) => parameter.name).join(", ");
@@ -208,16 +198,13 @@ function buildMain(method: ICppMethod): string {
             (parameter: ICppParameter) => parameter.type.kind === CppKind.Vector,
         );
         if (printed) {
-            const type: string = cppTypeText(printed.type);
-            body.push(`    // 返回值为 void, 按 LeetCode 的约定打印被就地修改的参数`);
-            body.push(`    std::cout << lc_local::Show<${type}>::get(${printed.name}) << std::endl;`);
+            // 返回值为 void 时按 LeetCode 的约定打印被就地修改的参数
+            body.push(`    lc_local::print(${printed.name});`);
         } else {
             body.push(String.raw`    std::cout << "该题目没有返回值, 也没有可打印的参数." << std::endl;`);
         }
     } else {
-        const type: string = cppTypeText(method.returnType);
-        body.push(`    ${type} result = ${call};`);
-        body.push(`    std::cout << lc_local::Show<${type}>::get(result) << std::endl;`);
+        body.push(`    lc_local::print(${call});`);
     }
 
     body.push("    return 0;");
@@ -231,8 +218,12 @@ function buildMain(method: ICppMethod): string {
  */
 function buildPlaceholderMain(): string {
     return [
+        "// 设计类题目需要按调用序列测试, 这里留空入口, 请自行构造用例:",
+        "//   LRUCache cache(2);",
+        "//   cache.put(1, 1);",
+        "//   std::cout << cache.get(1) << std::endl;",
         "int main() {",
-        String.raw`    std::cout << "该题目无法自动生成运行入口, 请在下面的 main 中手动构造用例并调用." << std::endl;`,
+        String.raw`    std::cout << "请在上面的 main 中手动构造用例并调用." << std::endl;`,
         "    return 0;",
         "}",
     ].join("\n");
