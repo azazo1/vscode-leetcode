@@ -37,6 +37,10 @@ export function shouldUseSharedRunnerHeader(): boolean {
     return getWorkspaceConfiguration().get<boolean>("cpp.sharedHeader", true);
 }
 
+export function shouldGenerateRustRunner(): boolean {
+    return getWorkspaceConfiguration().get<boolean>("rust.generateRunner", true);
+}
+
 export function getDescriptionConfiguration(): IDescriptionConfiguration {
     const setting: string = getWorkspaceConfiguration().get<string>("showDescription", DescriptionConfiguration.InWebView);
     const config: IDescriptionConfiguration = {

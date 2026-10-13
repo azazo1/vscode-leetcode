@@ -11,8 +11,10 @@ import { ConfigurationChangeEvent, Disposable, MessageItem, window, workspace, W
 import { Endpoint, IProblem, leetcodeHasInited, supportedPlugins } from "./shared";
 import { generateRunnableCpp } from "./runnable/cppRunner";
 import { ensureRunnerHeader } from "./runnable/cppHeaderFile";
+import { ensureRustHelper } from "./runnable/rustHelperFile";
+import { generateRunnableRust } from "./runnable/rustRunner";
 import { executeCommand, executeCommandWithProgress } from "./utils/cpUtils";
-import { shouldGenerateCppRunner, shouldUseSharedRunnerHeader } from "./utils/settingUtils";
+import { shouldGenerateCppRunner, shouldGenerateRustRunner, shouldUseSharedRunnerHeader } from "./utils/settingUtils";
 import { DialogOptions, openUrl } from "./utils/uiUtils";
 import * as wsl from "./utils/wslUtils";
 import { toWslPath, useWsl } from "./utils/wslUtils";
@@ -120,6 +122,10 @@ class LeetCodeExecutor implements Disposable {
                     await ensureRunnerHeader(filePath);
                 }
                 codeTemplate = generateRunnableCpp(codeTemplate, useSharedHeader);
+            }
+            if (language === "rust" && shouldGenerateRustRunner()) {
+                await ensureRustHelper(filePath);
+                codeTemplate = generateRunnableRust(codeTemplate, path.basename(filePath));
             }
             await fse.writeFile(filePath, codeTemplate);
         }
