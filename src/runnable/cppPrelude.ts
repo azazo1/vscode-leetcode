@@ -65,14 +65,21 @@ const TREE_NODE: string = String.raw`struct TreeNode {
  *
  * 链表题与二叉树题的初始代码把 ListNode / TreeNode 的定义放在注释里,
  * 因此需要在这里补上, 否则类中的参数类型无法编译.
+ *
+ * 题目自己定义了其中一个时, 用宏告诉后面的辅助代码跳过它, 连带着跳过针对它的读写实现,
+ * 因为它定义在标记之内, 辅助代码在它之前, 无法引用它.
  */
 export function buildRunnerPrelude(defineListNode: boolean, defineTreeNode: boolean): string {
     const parts: string[] = [INCLUDES, "", "using namespace std;", ""];
     if (defineListNode) {
         parts.push(LIST_NODE, "");
+    } else {
+        parts.push("#define LC_LOCAL_NO_LISTNODE", "");
     }
     if (defineTreeNode) {
         parts.push(TREE_NODE, "");
+    } else {
+        parts.push("#define LC_LOCAL_NO_TREENODE", "");
     }
     return parts.join("\n");
 }
@@ -82,6 +89,9 @@ export function buildRunnerPrelude(defineListNode: boolean, defineTreeNode: bool
  *
  * 放在标记之后而不是之前, 是为了保证 ListNode / TreeNode 已经可见:
  * 结构体的定义要么来自上面的 prelude, 要么来自题目代码自身.
+ *
+ * 题目自己定义了某个结构体时, 它定义在标记之内, 这份辅助代码在它之前无法引用它,
+ * 因此连它对应的读写实现一起用宏跳过 (定义该宏的地方见 buildRunnerPrelude 与 buildRunnerHeader).
  */
 export const RUNNER_SUPPORT: string = String.raw`// ---- 以下为本地编译与运行辅助代码, 位于 @lc 标记之外, 不会提交到 LeetCode ----
 namespace lc_local {
@@ -263,6 +273,7 @@ struct Read<std::vector<T> > {
     }
 };
 
+#ifndef LC_LOCAL_NO_LISTNODE
 template <>
 struct Read<ListNode *> {
     static ListNode *get(Reader &reader) {
@@ -276,7 +287,9 @@ struct Read<ListNode *> {
         return head.next;
     }
 };
+#endif
 
+#ifndef LC_LOCAL_NO_TREENODE
 template <>
 struct Read<TreeNode *> {
     static TreeNode *get(Reader &reader) {
@@ -322,6 +335,7 @@ struct Read<TreeNode *> {
         return root;
     }
 };
+#endif
 
 // 按类型打印一个值, 输出格式与 LeetCode 的示例一致
 template <typename T>
@@ -384,6 +398,7 @@ struct Show<std::vector<T> > {
     }
 };
 
+#ifndef LC_LOCAL_NO_LISTNODE
 template <>
 struct Show<ListNode *> {
     static std::string get(ListNode *head) {
@@ -401,7 +416,9 @@ struct Show<ListNode *> {
         return result;
     }
 };
+#endif
 
+#ifndef LC_LOCAL_NO_TREENODE
 template <>
 struct Show<TreeNode *> {
     static std::string get(TreeNode *root) {
@@ -436,6 +453,7 @@ struct Show<TreeNode *> {
         return result;
     }
 };
+#endif
 
 // 读入标准输入. 没有输入时给出用法提示, 而不是静默地按默认值运行.
 inline std::string readStdin(std::istream &in) {
@@ -478,7 +496,7 @@ inline void print(const T &value) {
 export const RUNNER_HEADER_NAME: string = "lc_local.h";
 
 /** 头文件内容的版本, 用来判断磁盘上的副本是否需要更新. */
-export const RUNNER_HEADER_VERSION: string = "1";
+export const RUNNER_HEADER_VERSION: string = "2";
 
 /** 生成的文件都带这一行, 据此判断某个 lc_local.h 是否由本扩展生成. */
 export const RUNNER_HEADER_MARKER: string = "azazo1.vscode-leetcode";

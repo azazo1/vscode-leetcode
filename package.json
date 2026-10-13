@@ -687,7 +687,7 @@
                         "type": "boolean",
                         "default": true,
                         "scope": "application",
-                        "description": "Generate compilable C++ code by adding standard headers, the ListNode/TreeNode definitions when the template only has them in comments, and a main function that reads test input from stdin. The added code stays outside the '@lc code=start' and '@lc code=end' markers, so it is never submitted to LeetCode."
+                        "description": "Generate compilable C++ code by adding standard headers, the ListNode/TreeNode definitions when the template only has them in comments, and an empty main that asks you to write your own test case. The added code stays outside the '@lc code=start' and '@lc code=end' markers, so it is never submitted to LeetCode."
                     },
                     "leetcode.cpp.sharedHeader": {
                         "type": "boolean",
@@ -699,7 +699,7 @@
                         "type": "boolean",
                         "default": true,
                         "scope": "application",
-                        "description": "Generate compilable Rust code by adding the Solution/ListNode/TreeNode definitions that the template only has in comments, plus a main function that reads test input from stdin. The helpers live in a shared 'lc_local.rs' next to the problem file and are included from outside the '@lc code=start' and '@lc code=end' markers, so nothing added here is ever submitted to LeetCode."
+                        "description": "Generate compilable Rust code by adding the Solution/ListNode/TreeNode definitions that the template only has in comments, plus an empty main that asks you to write your own test case. The helpers live in a shared 'lc_local.rs' next to the problem file and are included from outside the '@lc code=start' and '@lc code=end' markers, so nothing added here is ever submitted to LeetCode."
                     },
                     "leetcode.colorizeProblems": {
                         "type": "boolean",
