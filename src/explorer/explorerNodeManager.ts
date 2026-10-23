@@ -36,10 +36,6 @@ class ExplorerNodeManager implements Disposable {
     public getRootNodes(): LeetCodeNode[] {
         return [
             new LeetCodeNode(Object.assign({}, defaultProblem, {
-                id: Category.Hot100,
-                name: hot100LikedLabel,
-            }), false),
-            new LeetCodeNode(Object.assign({}, defaultProblem, {
                 id: Category.All,
                 name: Category.All,
             }), false),
@@ -58,6 +54,11 @@ class ExplorerNodeManager implements Disposable {
             new LeetCodeNode(Object.assign({}, defaultProblem, {
                 id: Category.Favorite,
                 name: Category.Favorite,
+            }), false),
+            // 题单放在其它维度之后: All 仍然是第一个入口, 题单作为额外的学习计划列在末尾.
+            new LeetCodeNode(Object.assign({}, defaultProblem, {
+                id: Category.Hot100,
+                name: hot100LikedLabel,
             }), false),
         ];
     }

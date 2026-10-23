@@ -107,7 +107,7 @@
 
 ### Hot 100
 
-- `LeetCode Explorer` 顶部的 `Hot 100` 节点展示官方"热题 100"题单, 分组与顺序和 LeetCode 官网一致.
+- `LeetCode Explorer` 底部的 `Hot 100` 节点展示官方"热题 100"题单, 分组与顺序和 LeetCode 官网一致.
 - 题单数据从官方题单接口读取并缓存, 官方调整题单后会自动跟上. 请求失败时使用上一次成功的结果, 首次运行且没有网络时使用内置快照.
 - 分组内保持官方顺序, 不受 `leetcode.problems.sortStrategy` 影响.
 - 首次生成 Hot 100 题目文件时, 会在 `@lc code=start` 之前写入一行注释标记:

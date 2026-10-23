@@ -107,7 +107,7 @@ Thanks for [@yihong0618](https://github.com/yihong0618) provided a workaround wh
 
 ### Hot 100
 
-- The `Hot 100` node at the top of the `LeetCode Explorer` shows the official "热题 100" study plan, with the same groups and the same order as the LeetCode website.
+- The `Hot 100` node at the bottom of the `LeetCode Explorer` shows the official "热题 100" study plan, with the same groups and the same order as the LeetCode website.
 - The plan is read from LeetCode's study plan endpoint and cached, so it keeps up when LeetCode changes the plan. If the request fails, the last successful copy is used, and a built-in snapshot covers the first run without network access.
 - Problems inside a group keep the official order; the `problems.sortStrategy` setting does not reorder them.
 - When a Hot 100 problem file is generated, a comment marker is added before `@lc code=start`:
