@@ -52,13 +52,6 @@ export class CustomCodeLensProvider implements vscode.CodeLensProvider {
         // 顺序沿用官方题单, 组内继续, 组末跳到下一组的第一题.
         const nextProblemId: string | undefined = nodeId ? studyPlanManager.getNextHot100LikedProblemId(nodeId) : undefined;
         const nextNode: LeetCodeNode | undefined = nextProblemId ? explorerNodeManager.getNodeById(nextProblemId) : undefined;
-        if (nextNode) {
-            codeLens.push(new vscode.CodeLens(range, {
-                title: `Next: [${nextNode.id}] ${nextNode.name}`,
-                command: "leetcode.showProblem",
-                arguments: [nextNode],
-            }));
-        }
 
         if (shortcuts.indexOf("submit") >= 0) {
             codeLens.push(new vscode.CodeLens(range, {
@@ -97,6 +90,15 @@ export class CustomCodeLensProvider implements vscode.CodeLensProvider {
                 title: "Description",
                 command: "leetcode.previewProblem",
                 arguments: [document.uri],
+            }));
+        }
+
+        // Next 放在其它快捷方式之后: Submit/Test 等保持原来的顺序和位置.
+        if (nextNode) {
+            codeLens.push(new vscode.CodeLens(range, {
+                title: `Next: [${nextNode.id}] ${nextNode.name}`,
+                command: "leetcode.showProblem",
+                arguments: [nextNode],
             }));
         }
 
