@@ -3,6 +3,12 @@ All notable changes to the "leetcode" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [Unreleased]
+### Added
+- Hot 100 study plan in the explorer, with the official groups and order, cached and backed by a built-in snapshot
+- A generic `@lc plan=... group=... pos=... next=...` marker written into newly generated problem files
+- A `Next` code lens that opens the next problem in the Hot 100 order
+
 ## [0.18.4]
 ### Added
 - change graphql path

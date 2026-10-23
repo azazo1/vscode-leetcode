@@ -5,7 +5,8 @@ import * as _ from "lodash";
 import { Disposable } from "vscode";
 import * as list from "../commands/list";
 import { getSortingStrategy } from "../commands/plugin";
-import { Category, defaultProblem, ProblemState, SortingStrategy } from "../shared";
+import { Category, defaultProblem, IProblem, IStudyPlan, IStudyPlanGroup, ProblemState, SortingStrategy } from "../shared";
+import { hot100LikedLabel, studyPlanManager } from "../studyplan/studyPlanManager";
 import { shouldHideSolvedProblem } from "../utils/settingUtils";
 import { LeetCodeNode } from "./LeetCodeNode";
 
@@ -17,7 +18,8 @@ class ExplorerNodeManager implements Disposable {
     public async refreshCache(): Promise<void> {
         this.dispose();
         const shouldHideSolved: boolean = shouldHideSolvedProblem();
-        for (const problem of await list.listProblems()) {
+        const problems: IProblem[] = (await Promise.all([list.listProblems(), studyPlanManager.refresh()]))[0];
+        for (const problem of problems) {
             if (shouldHideSolved && problem.state === ProblemState.AC) {
                 continue;
             }
@@ -33,6 +35,10 @@ class ExplorerNodeManager implements Disposable {
 
     public getRootNodes(): LeetCodeNode[] {
         return [
+            new LeetCodeNode(Object.assign({}, defaultProblem, {
+                id: Category.Hot100,
+                name: hot100LikedLabel,
+            }), false),
             new LeetCodeNode(Object.assign({}, defaultProblem, {
                 id: Category.All,
                 name: Category.All,
@@ -106,6 +112,19 @@ class ExplorerNodeManager implements Disposable {
         return res;
     }
 
+    /**
+     * "热题 100" 的分组节点, 顺序与官方题单一致.
+     */
+    public getHot100LikedGroupNodes(): LeetCodeNode[] {
+        return studyPlanManager.getHot100Liked().groups.map((group: IStudyPlanGroup) => new LeetCodeNode(
+            Object.assign({}, defaultProblem, {
+                id: `${Category.Hot100}.${group.name}`,
+                name: group.name,
+            }),
+            false,
+        ));
+    }
+
     public getNodeById(id: string): LeetCodeNode | undefined {
         return this.explorerNodeMap.get(id);
     }
@@ -121,6 +140,12 @@ class ExplorerNodeManager implements Disposable {
     }
 
     public getChildrenNodesById(id: string): LeetCodeNode[] {
+        // The Hot 100 sub-category node's id is named as {Category.Hot100}.{GroupName},
+        // the group name itself may contain dots, so it is resolved by prefix instead of splitting.
+        if (id.indexOf(`${Category.Hot100}.`) === 0) {
+            return this.getHot100LikedNodesOfGroup(id.slice(Category.Hot100.length + 1));
+        }
+
         // The sub-category node's id is named as {Category.SubName}
         const metaInfo: string[] = id.split(".");
         const res: LeetCodeNode[] = [];
@@ -188,6 +213,27 @@ class ExplorerNodeManager implements Disposable {
             default:
                 break;
         }
+    }
+
+    /**
+     * 题单分组里的题目节点, 顺序保持官方题单的顺序, 不套用面板的排序策略.
+     *
+     * 分组里少数题目可能不在题库缓存中 (例如尚未登录), 这类题目直接跳过.
+     */
+    private getHot100LikedNodesOfGroup(groupName: string): LeetCodeNode[] {
+        const plan: IStudyPlan = studyPlanManager.getHot100Liked();
+        const group: IStudyPlanGroup | undefined = plan.groups.find((item: IStudyPlanGroup) => item.name === groupName);
+        if (!group) {
+            return [];
+        }
+        const res: LeetCodeNode[] = [];
+        for (const problemId of group.problemIds) {
+            const node: LeetCodeNode | undefined = this.explorerNodeMap.get(problemId);
+            if (node) {
+                res.push(node);
+            }
+        }
+        return res;
     }
 
     private applySortingStrategy(nodes: LeetCodeNode[]): LeetCodeNode[] {

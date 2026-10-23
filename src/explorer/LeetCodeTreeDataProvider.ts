@@ -75,6 +75,8 @@ export class LeetCodeTreeDataProvider implements vscode.TreeDataProvider<LeetCod
             return explorerNodeManager.getRootNodes();
         } else {
             switch (element.id) {
+                case Category.Hot100:
+                    return explorerNodeManager.getHot100LikedGroupNodes();
                 case Category.All:
                     return explorerNodeManager.getAllNodes();
                 case Category.Favorite:

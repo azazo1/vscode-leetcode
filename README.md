@@ -105,6 +105,24 @@ Thanks for [@yihong0618](https://github.com/yihong0618) provided a workaround wh
 
 ---
 
+### Hot 100
+
+- The `Hot 100` node at the top of the `LeetCode Explorer` shows the official "热题 100" study plan, with the same groups and the same order as the LeetCode website.
+- The plan is read from LeetCode's study plan endpoint and cached, so it keeps up when LeetCode changes the plan. If the request fails, the last successful copy is used, and a built-in snapshot covers the first run without network access.
+- Problems inside a group keep the official order; the `problems.sortStrategy` setting does not reorder them.
+- When a Hot 100 problem file is generated, a comment marker is added before `@lc code=start`:
+
+  ```
+  // @lc plan=top-100-liked group=哈希 pos=1/100 next=49
+  ```
+
+  The marker is generic and works for any study plan: `plan` is the plan slug, `group` and `pos` locate the problem in that plan, and `next` is the next problem id.
+- A `Next: [id] name` code lens next to the `Submit`/`Test` shortcuts opens the next problem in the official order, moving on to the next group when a group ends. It only shows up for Hot 100 problems.
+
+  > Note: the marker is written only when the file is created. Existing files are not modified.
+
+---
+
 ### Editor Shortcuts
 
 <p align="center">

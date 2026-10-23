@@ -96,11 +96,32 @@ export const defaultProblem: IProblem = {
 };
 
 export enum Category {
+    Hot100 = "Hot100",
     All = "All",
     Difficulty = "Difficulty",
     Tag = "Tag",
     Company = "Company",
     Favorite = "Favorite",
+}
+
+/**
+ * 题单 (study plan) 中的一组题目. 分组的名称和顺序都来自 LeetCode 官方数据.
+ */
+export interface IStudyPlanGroup {
+    name: string;
+    /** 题目 id, 与问题列表中的 id 一致, 顺序即官方顺序. */
+    problemIds: string[];
+}
+
+/**
+ * 一个题单, 例如官方的 "热题 100".
+ *
+ * 目前只用于 "热题 100", 但数据结构不假定题单类型, 后续可以用同样的方式接入其他题单.
+ */
+export interface IStudyPlan {
+    /** 官方题单的 slug, 也是题单在注释标记中的标识. */
+    slug: string;
+    groups: IStudyPlanGroup[];
 }
 
 export const supportedPlugins: string[] = ["company", "solution.discuss", "leetcode.cn"];

@@ -4,6 +4,7 @@
 import * as vscode from "vscode";
 import { explorerNodeManager } from "../explorer/explorerNodeManager";
 import { LeetCodeNode } from "../explorer/LeetCodeNode";
+import { studyPlanManager } from "../studyplan/studyPlanManager";
 import { getEditorShortcuts } from "../utils/settingUtils";
 
 export class CustomCodeLensProvider implements vscode.CodeLensProvider {
@@ -46,6 +47,18 @@ export class CustomCodeLensProvider implements vscode.CodeLensProvider {
 
         const range: vscode.Range = new vscode.Range(codeLensLine, 0, codeLensLine, 0);
         const codeLens: vscode.CodeLens[] = [];
+
+        // 当前题在 "热题 100" 里时, 提供跳转到题单下一题的入口.
+        // 顺序沿用官方题单, 组内继续, 组末跳到下一组的第一题.
+        const nextProblemId: string | undefined = nodeId ? studyPlanManager.getNextHot100LikedProblemId(nodeId) : undefined;
+        const nextNode: LeetCodeNode | undefined = nextProblemId ? explorerNodeManager.getNodeById(nextProblemId) : undefined;
+        if (nextNode) {
+            codeLens.push(new vscode.CodeLens(range, {
+                title: `Next: [${nextNode.id}] ${nextNode.name}`,
+                command: "leetcode.showProblem",
+                arguments: [nextNode],
+            }));
+        }
 
         if (shortcuts.indexOf("submit") >= 0) {
             codeLens.push(new vscode.CodeLens(range, {

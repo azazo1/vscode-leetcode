@@ -20,6 +20,7 @@ import { leetCodeExecutor } from "./leetCodeExecutor";
 import { leetCodeManager } from "./leetCodeManager";
 import { leetCodeStatusBarController } from "./statusbar/leetCodeStatusBarController";
 import { setSelfExtensionId } from "./shared";
+import { studyPlanManager } from "./studyplan/studyPlanManager";
 import { guardAgainstOriginalExtension } from "./utils/extensionConflict";
 import { DialogType, promptForOpenOutputChannel } from "./utils/uiUtils";
 import { leetCodePreviewProvider } from "./webview/leetCodePreviewProvider";
@@ -50,6 +51,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
         leetCodeTreeDataProvider.initialize(context);
         globalState.initialize(context);
+        studyPlanManager.initialize(context);
+        // 题单数据在后台拉取, 失败时使用缓存或内置快照, 不阻塞扩展激活.
+        studyPlanManager.refresh();
 
         context.subscriptions.push(
             leetCodeStatusBarController,
@@ -61,6 +65,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             markdownEngine,
             codeLensController,
             explorerNodeManager,
+            studyPlanManager,
             vscode.window.registerFileDecorationProvider(leetCodeTreeItemDecorationProvider),
             vscode.window.createTreeView("leetCodeExplorer", { treeDataProvider: leetCodeTreeDataProvider, showCollapseAll: true }),
             vscode.commands.registerCommand("leetcode.deleteCache", () => cache.deleteCache()),
