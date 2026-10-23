@@ -7,7 +7,7 @@ import { leetCodeExecutor } from "../leetCodeExecutor";
 import { leetCodeManager } from "../leetCodeManager";
 import { IQuickItemEx, UserStatus } from "../shared";
 import { isWindows, usingCmd } from "../utils/osUtils";
-import { DialogType, promptForOpenOutputChannel, showFileSelectDialog } from "../utils/uiUtils";
+import { DialogType, isSessionExpired, promptForOpenOutputChannel, promptForSessionExpired, showFileSelectDialog } from "../utils/uiUtils";
 import { getActiveFilePath } from "../utils/workspaceUtils";
 import * as wsl from "../utils/wslUtils";
 import { leetCodeSubmissionProvider } from "../webview/leetCodeSubmissionProvider";
@@ -83,6 +83,10 @@ export async function testSolution(uri?: vscode.Uri): Promise<void> {
         }
         leetCodeSubmissionProvider.show(result);
     } catch (error) {
+        if (isSessionExpired(error)) {
+            await promptForSessionExpired();
+            return;
+        }
         await promptForOpenOutputChannel("Failed to test the solution. Please open the output channel for details.", DialogType.error);
     }
 }

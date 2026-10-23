@@ -58,6 +58,32 @@ export async function promptForSignIn(): Promise<void> {
     }
 }
 
+/**
+ * 判断错误是否是 LeetCode 的登录会话过期.
+ *
+ * CLI 在提交或测试被服务端判定为未登录时, 会在输出里打印 `session expired, please login again` 并以非零码退出,
+ * 扩展拿到的错误对象把这段输出放在 result 里, 所以 message 和 result 都要检查.
+ */
+export function isSessionExpired(error: unknown): boolean {
+    const pattern: RegExp = /session expired, please login again/i;
+    if (error instanceof Error && pattern.test(error.message)) {
+        return true;
+    }
+    const result: string | undefined = (error as { result?: string } | undefined)?.result;
+    return !!result && pattern.test(result);
+}
+
+export async function promptForSessionExpired(): Promise<void> {
+    const choice: vscode.MessageItem | undefined = await vscode.window.showWarningMessage(
+        "Your LeetCode session has expired. Sign in again to continue.",
+        DialogOptions.yes,
+        DialogOptions.no,
+    );
+    if (choice === DialogOptions.yes) {
+        await vscode.commands.executeCommand("leetcode.signin");
+    }
+}
+
 export async function promptHintMessage(config: string, message: string, choiceConfirm: string, onConfirm: () => Promise<any>): Promise<void> {
     if (getWorkspaceConfiguration().get<boolean>(config)) {
         const choiceNoShowAgain: string = "Don't show again";
